@@ -34,7 +34,9 @@ int main() {
     }
 
     void* parity;
-    if (parity_start(&cfg, &parity) != 0) {
+    char mode[] = "rpc=trace";
+    Logger logger = { .mode = mode, .mode_len = strlen(mode), .file = NULL, .file_len = 0 };
+    if (parity_start(&cfg, logger, &parity) != 0) {
         return 1;
     }
 

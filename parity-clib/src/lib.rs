@@ -22,11 +22,8 @@ extern crate jni;
 extern crate parity_ethereum;
 extern crate panic_hook;
 
+use std::{str, slice, panic, ptr};
 use std::os::raw::{c_char, c_void, c_int};
-use std::panic;
-use std::ptr;
-use std::slice;
-use std::str;
 
 #[cfg(feature = "jni")]
 use std::mem;
@@ -38,6 +35,14 @@ pub struct ParityParams {
 	pub configuration: *mut c_void,
 	pub on_client_restart_cb: Option<extern "C" fn(*mut c_void, *const c_char, usize)>,
 	pub on_client_restart_cb_custom: *mut c_void,
+}
+
+#[repr(C)]
+pub struct Logger {
+	pub mode: *const char,
+	pub mode_len: usize,
+	pub file: *const char,
+	pub file_len: usize,
 }
 
 #[no_mangle]
@@ -87,11 +92,34 @@ pub unsafe extern fn parity_config_destroy(cfg: *mut c_void) {
 }
 
 #[no_mangle]
-pub unsafe extern fn parity_start(cfg: *const ParityParams, output: *mut *mut c_void) -> c_int {
+pub unsafe extern fn parity_start(cfg: *const ParityParams, logger: Logger, output: *mut *mut c_void) -> c_int {
 	panic::catch_unwind(|| {
 		*output = ptr::null_mut();
 		let cfg: &ParityParams = &*cfg;
 
+		let mode = {
+			if logger.mode_len == 0 {
+				None
+			} else {
+				let mode = slice::from_raw_parts(logger.mode as *const u8, logger.mode_len);
+				String::from_utf8(mode.to_owned()).ok()
+			}
+		};
+
+		let file = {
+			if logger.file_len == 0 {
+				None
+			} else {
+				let mode = slice::from_raw_parts(logger.mode as *const u8, logger.mode_len);
+				String::from_utf8(mode.to_owned()).ok()
+			}
+		};
+
+		let mut log_cfg = parity_ethereum::LoggerConfig::default();
+		log_cfg.mode = mode;
+		log_cfg.file = file;
+
+		let logger = parity_ethereum::setup_log(&log_cfg).expect("Logger initialized only once; qed");
 		let config = Box::from_raw(cfg.configuration as *mut parity_ethereum::Configuration);
 
 		let on_client_restart_cb = {
@@ -99,7 +127,7 @@ pub unsafe extern fn parity_start(cfg: *const ParityParams, output: *mut *mut c_
 			move |new_chain: String| { cb.call(&new_chain); }
 		};
 
-		let action = match parity_ethereum::start(*config, on_client_restart_cb, || {}) {
+		let action = match parity_ethereum::start(*config, logger, on_client_restart_cb, || {}) {
 			Ok(action) => action,
 			Err(_) => return 1,
 		};
@@ -215,7 +243,8 @@ pub unsafe extern "system" fn Java_io_parity_ethereum_Parity_build(env: JNIEnv, 
 	};
 
 	let mut out = ptr::null_mut();
-	match parity_start(&params, &mut out) {
+	let dummy_logger = Logger { mode: ptr::null(), mode_len: 0, file: ptr::null(), file_len: 0 };
+	match parity_start(&params, dummy_logger, &mut out) {
 		0 => out as usize as jlong,
 		_ => {
 			let _ = env.throw_new("java/lang/Exception", "failed to start Parity");

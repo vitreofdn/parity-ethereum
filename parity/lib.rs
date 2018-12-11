@@ -111,6 +111,7 @@ mod db;
 
 use std::io::BufReader;
 use std::fs::File;
+use std::sync::Arc;
 use hash::keccak_buffer;
 use cli::Args;
 use configuration::{Cmd, Execute};
@@ -120,8 +121,7 @@ use std::alloc::System;
 
 pub use self::configuration::Configuration;
 pub use self::run::RunningClient;
-use ethcore_logger::RotatingLogger;
-use std::sync::Arc;
+pub use ethcore_logger::{Config as LoggerConfig, setup_log, RotatingLogger};
 
 #[cfg(feature = "memory_profiling")]
 #[global_allocator]
