@@ -1,5 +1,3 @@
-![Parity Vitreo](docs/logo-vitreo.svg)
-
 <h2 align="center">The Fastest and most Advanced Vitreo Client.</h2>
 
 <p align="center"><strong><a href="https://github.com/vitreofdn/parity-vitreo/releases/latest">» Download the latest release «</a></strong></p>
