@@ -56,9 +56,9 @@ Make sure that these binaries are in your `PATH`. After that, you should be able
 ## Build from Source Code
 
 ```bash
-# download Parity Ethereum code
-$ git clone https://github.com/paritytech/parity-ethereum
-$ cd parity-ethereum
+# download Parity Vitreo code
+$ git clone https://github.com/vitreofdn/parity-vitreo
+$ cd parity-vitreo
 
 # build in release mode
 $ cargo build --release --features final
@@ -93,13 +93,13 @@ $ git checkout beta
 ## Simple One-Line Installer for Mac and Linux
 
 ```bash
-bash <(curl https://get.parity.io -L)
+bash <(curl https://get.vitreo.org -L)
 ```
 
 The one-line installer always defaults to the latest beta release. To install a stable release, run:
 
 ```bash
-bash <(curl https://get.parity.io -L) -r stable
+bash <(curl https://get.vitreo.org -L) -r stable
 ```
 
 ## Start Parity Vitreo
